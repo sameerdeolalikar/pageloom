@@ -44,6 +44,33 @@ class Tests(unittest.TestCase):
     def test_overflow_is_notice(self):
         d=self.fresh();d["elements"][1]["text"]="Long line "*20
         self.assertIn("title",analyze(validate(d))["overflow"])
+    def test_non_string_layer_text_preserves_saved_document(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Store(Path(tmp) / "library.sqlite3")
+            first = store.save({"revision": 0, "document": self.fresh()})
+            for value in [None, False, True, 0, 1, [], {}, ["text"]]:
+                with self.subTest(value=value):
+                    document = copy.deepcopy(first["document"])
+                    document["elements"][1]["text"] = value
+                    with self.assertRaisesRegex(ValueError, "Layer text must be a string"):
+                        store.save({**first, "document": document})
+                    self.assertEqual(store.get(first["id"]), first)
+            document = copy.deepcopy(first["document"])
+            document["elements"][1]["text"] = "Valid replacement"
+            saved = store.save({**first, "document": document})
+            self.assertEqual(saved["revision"], 2)
+            self.assertEqual(store.get(first["id"])["document"], document)
+
+    def test_empty_and_missing_layer_text_keep_placeholder(self):
+        for missing in [False, True]:
+            with self.subTest(missing=missing):
+                document = self.fresh()
+                if missing:
+                    del document["elements"][1]["text"]
+                else:
+                    document["elements"][1]["text"] = ""
+                self.assertEqual(validate(document)["elements"][1]["text"], "—")
+
     def test_locked_type(self):
         d=self.fresh();d["elements"][0]["locked"]="yes"
         with self.assertRaises(ValueError):validate(d)

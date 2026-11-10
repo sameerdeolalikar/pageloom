@@ -115,6 +115,18 @@ try {
   await page.locator("#error:not([hidden])").waitFor();
   await ready();
   assert.deepEqual(await exported(), expected);
+  const malformedText = structuredClone(expected);
+  malformedText.elements[1].text = false;
+  await page.setInputFiles("#import", {
+    name: "invalid-text.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(malformedText)),
+  });
+  await page.waitForFunction(
+    () => document.getElementById("error").textContent.includes("Layer text must be a string"),
+  );
+  await ready();
+  assert.deepEqual(await exported(), expected);
   await page.setInputFiles("#import", "examples/sample.json");
   await page.waitForFunction(
     () =>

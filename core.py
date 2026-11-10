@@ -37,9 +37,11 @@ def base(raw):
 def validate(raw):
     out=base(raw);out["width"]=integer(raw.get("width"),100,1000,"Page width");out["height"]=integer(raw.get("height"),100,1000,"Page height");out["elements"]=[]
     for x in items(raw,"elements"):
+        layer_text=x.get("text", "")
+        if not isinstance(layer_text,str):raise ValueError("Layer text must be a string.")
         color=x.get("color")
         if not isinstance(color,str) or not re.fullmatch(r"#[0-9a-fA-F]{6}",color):raise ValueError("Use a six-digit hexadecimal color.")
-        obj={"id":x["id"],"name":text(x.get("name"),"Layer name"),"kind":choice(x.get("kind"),["text","rectangle","ellipse"],"layer kind"),"x":integer(x.get("x"),0,1000,"X"),"y":integer(x.get("y"),0,1000,"Y"),"width":integer(x.get("width"),5,1000,"Width"),"height":integer(x.get("height"),5,1000,"Height"),"size":integer(x.get("size"),2,40,"Text size"),"text":text(x.get("text") or "—","Layer text",1000),"color":color,"locked":x.get("locked",False)}
+        obj={"id":x["id"],"name":text(x.get("name"),"Layer name"),"kind":choice(x.get("kind"),["text","rectangle","ellipse"],"layer kind"),"x":integer(x.get("x"),0,1000,"X"),"y":integer(x.get("y"),0,1000,"Y"),"width":integer(x.get("width"),5,1000,"Width"),"height":integer(x.get("height"),5,1000,"Height"),"size":integer(x.get("size"),2,40,"Text size"),"text":text(layer_text or "—","Layer text",1000),"color":color,"locked":x.get("locked",False)}
         if type(obj["locked"]) is not bool:raise ValueError("Locked must be boolean.")
         if obj["x"]+obj["width"]>out["width"] or obj["y"]+obj["height"]>out["height"]:raise ValueError("A layer extends beyond the page.")
         out["elements"].append(obj)

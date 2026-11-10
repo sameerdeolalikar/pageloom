@@ -43,6 +43,8 @@ Browser tests use Node.js 20+ and pinned Playwright. They create synthetic saved
 
 This is a single-page SVG composition prototype, not a full typesetting system. Text overflow notices use approximate character widths, not font shaping. There is no rich text, image import, automatic wrapping, font embedding, rotation, pagination or PDF export yet. Position locks prevent direct dragging and nudging; the explicit editor can change or unlock an object. Print size requires independent calibration.
 
+Layer text in JSON imports must be a string when supplied. Missing or empty text uses an em dash placeholder; malformed text values reject the import without replacing the current draft.
+
 Documents have at most 150 entries; the library supports 100 documents. Request/import size is bounded to 256 KB. Undo/redo is per-tab memory, not durable history. Export drafts before closing; there is no automatic crash recovery yet. Optimistic revisions reject stale saves, but merging conflicts is future work.
 
 ## Planned development
