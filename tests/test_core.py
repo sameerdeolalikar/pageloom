@@ -32,6 +32,21 @@ class Tests(unittest.TestCase):
             store=Store(Path(tmp)/"library.sqlite3");first=store.save({"revision":0,"document":self.fresh()})
             with self.assertRaises(ValueError):store.save({**first,"document":{"version":2}})
             self.assertEqual(store.get(first["id"]),first)
+    def test_empty_document_id_does_not_create_duplicate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Store(Path(tmp) / "library.sqlite3")
+            first = store.save({"revision": 0, "document": self.fresh()})
+            library = store.list()
+            with self.assertRaisesRegex(ValueError, "Invalid document ID"):
+                store.save({**first, "id": "", "revision": 0})
+            self.assertEqual(store.list(), library)
+            self.assertEqual(store.get(first["id"]), first)
+            document = dict(first["document"], title="Updated title")
+            saved = store.save({**first, "document": document})
+            self.assertEqual(saved["id"], first["id"])
+            self.assertEqual(saved["revision"], 2)
+            self.assertEqual(store.get(first["id"])["document"], document)
+            self.assertEqual(len(store.list()), 1)
     def test_out_of_bounds_rejected(self):
         d=self.fresh();d["elements"][0]["x"]=200
         with self.assertRaises(ValueError):validate(d)
