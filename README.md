@@ -45,6 +45,8 @@ This is a single-page SVG composition prototype, not a full typesetting system. 
 
 Layer text in JSON imports must be a string when supplied. Missing or empty text uses an em dash placeholder; malformed text values reject the import without replacing the current draft.
 
+Text overflow estimates use newline (`\n`) characters for explicit line breaks, matching the SVG renderer. Other separator characters do not start a new rendered line.
+
 Documents have at most 150 entries; the library supports 100 documents. Request/import size is bounded to 256 KB. Undo/redo is per-tab memory, not durable history. Export drafts before closing; there is no automatic crash recovery yet. Optimistic revisions reject stale saves, but merging conflicts is future work.
 
 ## Planned development

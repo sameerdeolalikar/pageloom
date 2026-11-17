@@ -59,6 +59,19 @@ class Tests(unittest.TestCase):
     def test_overflow_is_notice(self):
         d=self.fresh();d["elements"][1]["text"]="Long line "*20
         self.assertIn("title",analyze(validate(d))["overflow"])
+    def test_overflow_uses_rendered_line_breaks(self):
+        for separator in ["\u2028", "\u2029", "\v", "\r", "\n"]:
+            for width, height, expected in [(25, 40, separator != "\n"),
+                                            (100, 20, separator == "\n")]:
+                with self.subTest(separator=repr(separator), width=width, height=height):
+                    document = self.fresh()
+                    layer = document["elements"][1]
+                    layer.update(text="aa" + separator + "bb", size=10,
+                                 width=width, height=height)
+                    validated = validate(document)
+                    self.assertEqual(validated["elements"][1]["text"], layer["text"])
+                    self.assertEqual(layer["id"] in analyze(validated)["overflow"], expected)
+
     def test_non_string_layer_text_preserves_saved_document(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = Store(Path(tmp) / "library.sqlite3")

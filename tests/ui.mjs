@@ -127,6 +127,29 @@ try {
   );
   await ready();
   assert.deepEqual(await exported(), expected);
+  for (const [width, height, noticeCount] of [[25, 40, 1], [100, 20, 0]]) {
+    const document = structuredClone(expected);
+    document.elements = [{
+      ...document.elements.find((layer) => layer.id === "title"),
+      text: "aa\u2028bb", size: 10, width, height,
+    }];
+    await page.setInputFiles("#import", {
+      name: "separator.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(document)),
+    });
+    await page.waitForFunction(
+      (width) => document.querySelector("#shape-title rect")?.getAttribute("width") === String(width),
+      width,
+    );
+    await ready();
+    assert.equal(await page.locator("#shape-title tspan").count(), 1);
+    assert.equal(
+      await page.locator(".notice").filter({ hasText: "text may exceed its box" }).count(),
+      noticeCount,
+    );
+    assert.deepEqual(await exported(), document);
+  }
   await page.setInputFiles("#import", "examples/sample.json");
   await page.waitForFunction(
     () =>

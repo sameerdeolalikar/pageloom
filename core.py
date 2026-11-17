@@ -48,5 +48,5 @@ def validate(raw):
     return out
 
 def analyze(doc):
-    overflow=[e["id"] for e in doc["elements"] if e["kind"]=="text" and (max(map(len,e["text"].splitlines()))*e["size"]*.62>e["width"] or len(e["text"].splitlines())*e["size"]*1.3>e["height"])]
+    overflow=[e["id"] for e in doc["elements"] if e["kind"]=="text" and (max(map(len,e["text"].split("\n")))*e["size"]*.62>e["width"] or len(e["text"].split("\n"))*e["size"]*1.3>e["height"])]
     return {"overflow":overflow,"metrics":{"Layers":len(doc["elements"]),"Locked":sum(e["locked"] for e in doc["elements"]),"Text notices":len(overflow),"Page width mm":doc["width"]}}
